@@ -4,16 +4,23 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.content.res.Resources.NotFoundException;
+import android.content.Context;
 import android.geosvr.dtn.DTNService;
 import android.geosvr.dtn.R;
 import android.geosvr.dtn.servlib.conv_layers.DTNLocationProvider;
+import android.geosvr.dtn.servlib.gpsposition.FullLocation;
+import android.geosvr.dtn.servlib.gpsposition.GpsPosition;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 
 public class Location extends TimerTask{
+	String TAG="Location";
+	//gps位置获取的引用
+	GpsPosition gpsposition=null;
 	
 	
 	private File locationFile_;
@@ -22,6 +29,35 @@ public class Location extends TimerTask{
 	private double longitude_;
 	private double latitude_;
 	private boolean isManual;
+	
+	//对获取到的GPS数据进行处理
+	Handler handler=new Handler()
+	{
+
+		@Override
+		public void handleMessage(Message msg) {
+			// TODO Auto-generated method stub
+//			super.handleMessage(msg);
+			if(gpsposition!=null)
+			{
+				FullLocation fullLocation=gpsposition.getLocation();
+				if(fullLocation!=null)
+				{
+					android.location.Location location=fullLocation.getLocation();
+					//获取经纬度
+					longitude_=location.getLongitude();
+					latitude_=location.getLatitude();
+					//判断是GPS定位还是计步定位
+					//boolean isGps=fullLocation.isFullGps();
+				}
+				else
+					Log.e(TAG,"Gps无法定位或者没有默认的经纬度");
+			}
+			else
+				Log.e(TAG,"GpsPosition没有初始化");
+		}
+		
+	};
 	
 	public double getLongitude() {
 		return longitude_;
@@ -54,7 +90,21 @@ public class Location extends TimerTask{
 			    timer.schedule(this, delay_sec_ * 1000, delay_sec_ * 1000);
 
 			} else {
+				
 				/*get GPS data*/
+				
+				//需要的初始化数据
+				double defaultLongtitude=100.112233;//默认的经度
+				double defaultLatitude= 200.556677;//默认的纬度
+				Context context=null;//activity的上下文
+				
+				//初始化
+				if(gpsposition==null)
+				{
+					gpsposition=new GpsPosition(context, handler, defaultLongtitude, defaultLatitude);
+					gpsposition.start();
+				}
+				
 			}
 			//启动交互接口
 			DTNLocationProvider loc = new DTNLocationProvider();
