@@ -329,7 +329,7 @@ public class DTNSend extends Activity  {
 		
 		DTNBundlePayload dtn_payload = new DTNBundlePayload(dtn_bundle_payload_location_t.DTN_PAYLOAD_FILE);
 //		dtn_payload.set_file(new File("/sdcard/test_4M.wma"));
-		dtn_payload.set_file(new File("/sdcard/test_0.5M.mp3"));
+		dtn_payload.set_file(new File("/sdcard/file500K.txt"));
 //		dtn_payload.set_file(new File("/sdcard/test.htm"));
 		   
 		// Start the DTN Communication
@@ -366,7 +366,7 @@ public class DTNSend extends Activity  {
 	//			}
 	//		}
 			api_send_result = dtn_api_binder_
-						.dtn_multiple_send(dtn_handle, spec, dtn_payload, 28);
+						.dtn_multiple_send(dtn_handle, spec, dtn_payload, 1);
 			// If the API fail to execute throw the exception so user interface can catch and notify users
 			if (api_send_result != dtn_api_status_report_code.DTN_SUCCESS) {
 				throw new DTNAPIFailException();

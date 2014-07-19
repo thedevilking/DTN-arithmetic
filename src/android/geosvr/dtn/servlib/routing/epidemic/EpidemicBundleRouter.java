@@ -54,7 +54,8 @@ import android.util.Log;
  * @author Mahesh Bogadi Shankar Prasad (mabsp@kth.se)
  */
 
-public class EpidemicBundleRouter extends TableBasedRouter {
+public class EpidemicBundleRouter extends TableBasedRouter implements Runnable 
+{
 	public static enum epidemic_header_result {
 
 		AckAll("AckAll", (byte) 0x01), Failure("Failure", (byte) 0x03), NoSuccessAck(
@@ -774,10 +775,21 @@ public class EpidemicBundleRouter extends TableBasedRouter {
 		}
 	}
 
+	//这里是对发送的处理，epidemic路由对发送的处理
+	
+	private BundleEvent event_;//传递给线程执行的event_
+	
 	@Override
 	public void thread_handle_event(BundleEvent event) {
 		// TODO Auto-generated method stub
-		
+		this.event_=event;
+		(new Thread(this)).start();
+	}
+
+	@Override
+	public void run()
+	{
+		super.handle_event(event_);
 	}
 
 }

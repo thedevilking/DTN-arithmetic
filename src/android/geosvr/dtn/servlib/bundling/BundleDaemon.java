@@ -330,6 +330,12 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 	 *  "The list of all bundles that are still being processed" [DTN2]
 	 */
 	protected BundleList pending_bundles_;
+	
+	/**
+	 * 新添加变量,用来记录所有的过去的bundles.这样就可以保证路由过程中不会重复的收发数据包了
+	 * history_bundles_
+	 */
+	protected BundleList history_bundles_;
 
 	/**
 	 *  "The ping registration" [DTN2]
@@ -403,6 +409,9 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 		eventq_ = new PriorityBlockingQueue<BundleEvent>(event_queue_capacity_, BundleEventPriorityComparator.getInstance());
 		fragmentmgr_ = FragmentManager.getInstance();
 		pending_bundles_ = new BundleList("pending_bundles");
+		//历史bundles信息
+		history_bundles_=new BundleList("history_bundles");
+		
 		reg_table_ = RegistrationTable.getInstance();
 		stats_ = new Stats();
 		params_ = new Params();
@@ -804,6 +813,8 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 				.bundleid()));
 
 		pending_bundles_.push_back(bundle);
+		//加入到历史信息
+		history_bundles_.push_back(bundle);
 
 		if (add_to_store) {
 			bundle.set_complete(true);
@@ -1108,13 +1119,17 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 	 */
 	protected Bundle find_duplicate(Bundle b) {
 
-		pending_bundles_.get_lock().lock();
+		history_bundles_.get_lock().lock();
+		//pending_bundles_.get_lock().lock();
+		
+		
 		try {
 			Log.d(TAG, String.format("pending_bundles size %d",
-					pending_bundles_.size()));
+					history_bundles_.size()));
 			Bundle found = null;
 
-			ListIterator<Bundle> iter = pending_bundles_.begin();
+			ListIterator<Bundle> iter = history_bundles_.begin();
+			//ListIterator<Bundle> iter = pending_bundles_.begin();
 
 			while (iter.hasNext()) {
 				Bundle b2 = iter.next();
@@ -1148,7 +1163,8 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 							"BundleDaemon:find_duplicate, BundleList Lock Not Hold by current Thread Exception");
 			return null;
 		} finally {
-			pending_bundles_.get_lock().unlock();
+			history_bundles_.get_lock().unlock();
+			//pending_bundles_.get_lock().unlock();
 		}
 	}
 
@@ -1823,6 +1839,12 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 				(event.source() != event_source_t.EVENTSRC_ROUTER)
 						&& (bundle.is_fragment() == false));
 
+		/*
+		 * 对法向自己的信息不进行处理
+		 */
+		if(is_local)
+			event.set_daemon_only(true);
+		
 		/*
 		 * "Re-assemble bundle fragments that are destined to the local node." [DTN2]
 		 */

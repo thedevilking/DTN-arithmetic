@@ -310,7 +310,8 @@ public class TestDataLogger {
 		Date end_date     = new Date(end.time_milliseconds);
 		// write result
 		  
-		String record_data =String.format(
+		//原日志格式
+		/*String record_data =String.format(
 				// Time written, bundle id , size ( bytes ), time start( readable ), time end ( readable ),  time used ( millisecond ), battery begin , battery end, battery consume
 			      "%s,%d,%d,%s,%s,%d,%d,%d,%d",
 			      current_date.toString(),
@@ -324,7 +325,19 @@ public class TestDataLogger {
 			      battery_consume
 		
 		
+		);*/
+		
+		//新日志格式
+		String record_data =String.format(
+				// 开始时间（毫秒计时），结束时间（毫秒计时），bundle的id，bundle的长度
+			      "%s,%s,%d,%d",
+			      start_date.getTime(),
+			      end_date.getTime(),
+			      bundle.bundleid(),
+			      total_length
+		
 		);
+		
 		try {
 			
 		if (type == test_data_type_t.UPLOAD)
