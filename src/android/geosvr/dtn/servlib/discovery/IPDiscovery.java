@@ -256,25 +256,20 @@ public class IPDiscovery extends Discovery implements Runnable {
 	/**
 	 * Main loop in Discovery
 	 */
-
 	public void run() {
 
 		Log.d(TAG, "discovery thread running");
 		IByteBuffer buf = new SerializableByteBuffer(1024);
 
-		int iii = 10;
-		while(iii-- > 0){
-			HashMap<String, PASVExtraInfo> tttt = PASVDiscovery.getInstance().getPASVDiscoveriesList();
-			System.out.println("ssss");
-		}
-		boolean test = false;
-		while (test) {
-//		while (iii-- > 0) {
+		while (true) {
 			if (shutdown_)
 				break;
 
 			/* Send section */
-			try {
+			try 
+			{
+//				Log.i(TAG, "发送数据");
+				
 				int min_diff = INT_MAX;
 				Iterator<Announce> i = list_.iterator();
 
@@ -288,6 +283,7 @@ public class IPDiscovery extends Discovery implements Runnable {
 							// Log.d(TAG, "announce ready for sending");
 							hdr = announce.format_advertisement(buf, 1024);
 
+							//有用么？
 							buf.put(hdr.cl_type());
 							buf.put(hdr.interval());
 							buf.putShort(hdr.length());
@@ -324,6 +320,7 @@ public class IPDiscovery extends Discovery implements Runnable {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				Log.e(TAG, "发送部分错误"+e.toString());
 			}
 
 			/* receive section */
@@ -334,7 +331,11 @@ public class IPDiscovery extends Discovery implements Runnable {
 
 				DatagramPacket packet = new DatagramPacket(Rdata, Rdata.length);
 
+				//测试接收时间超时是否成功
+//				Log.i(TAG, "准备接收数据");
+				
 				socket_.receive(packet);
+				
 //				Log.d("B4", "Received beacon: "+packet.getAddress());
 
 				// String s = new String(packet.getData(), 0,
@@ -369,14 +370,24 @@ public class IPDiscovery extends Discovery implements Runnable {
 				// if(hdr.inet_addr().toString().equals("0.0.0.0"))
 				nexthop = packet.getAddress().toString() + ":"
 						+ hdr.inet_port();
+				
+				
+				
+				
 				// else
 				// nexthop = hdr.inet_addr().toString()+":"+hdr.inet_port();
 
 				String Type = IPDiscovery.type_to_str(cl_type_t.get(hdr
 						.cl_type()));
 
+				/*Log.i(TAG, "收到"+packet.getAddress()+"发来的数据包");
+				Log.i(TAG, "Tye="+Type);
+				Log.i(TAG, "nexthop="+nexthop);
+				Log.i(TAG, "remote_eid.uri="+remote_eid.uri());*/
+				
 				BundleDaemon BD = BundleDaemon.getInstance();
 				
+				//判断是否是本节点，如果是本节点则不作处理
 				if (remote_eid.equals(BD.local_eid())) {
 					// Log.d(TAG, "ignoring beacon from self" + remote_eid);
 				} else {
@@ -387,8 +398,8 @@ public class IPDiscovery extends Discovery implements Runnable {
 //				Log.d("B4", "beacon: "+remote_eid);
 
 			} catch (Exception e) {
-//				 Log.i(TAG, "Fail receiving the UDP datagram " +
-//				 e.getMessage());
+//				e.printStackTrace();
+//				Log.e(TAG, "接收错误"+e.toString());
 			}
 
 		}
