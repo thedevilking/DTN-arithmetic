@@ -685,7 +685,7 @@ public class BundleDaemon extends BundleEventHandler implements Runnable {
 				try {
 					event = eventq_.take();
 
-					handle_event(event);
+ 					handle_event(event);
 				} catch (InterruptedException e) {
 					Log.e(TAG, "Event Handle Interuptted Exception");
 				}

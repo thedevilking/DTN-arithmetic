@@ -170,6 +170,7 @@ public class BundleActions {
 //					.type_str(), link.name(), link.nexthop()));
 //			return false;
 //		}
+		//决定是否能够对多个邻居节点发送数据
 		boolean[] found = {false};
 		if (bundle.fwdlog().get_latest_entry(ForwardingInfo.state_t.QUEUED, found) != null) {
 			return false;
